@@ -11,7 +11,7 @@ import fs from "mz/fs";
 import getDiff from "./utils/getDiff";
 import saveBase64Image from "./utils/saveBase64Image";
 import Jimp from "jimp";
-
+import { rateLimit } from 'express-rate-limit'
 
 import { extractLastFrameFromGif } from "./utils/extractLastFrameFromGif";
 
@@ -25,6 +25,17 @@ const port = process.env.PORT as string;
 app.use(express.json({limit:"20mb"}))
 
 app.use(cors())
+
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+	// store: ... , // Redis, Memcached, etc. See below.
+})
+
+app.use(limiter)
 
 export const IdealImagePath = "ideal.png" 
 const writingImagePath = "./utils/temp/writing.png"
